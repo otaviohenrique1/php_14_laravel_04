@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SeriesCreated as SeriesCreatedEvent;
 use App\Http\Middleware\Autenticador;
 use App\Http\Requests\SeriesFormRequest;
+// use App\Mail\SeriesCreated;
 // use App\Models\Episode;
 // use App\Models\Season;
 use App\Models\Series;
+use App\Models\User;
 // use App\Repositories\EloquentSeriesRepository;
 use App\Repositories\SeriesRepository;
+use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+
 // use Illuminate\Support\Facades\DB;
 
 class SeriesController extends Controller
@@ -146,6 +152,50 @@ class SeriesController extends Controller
         // DB::commit();
 
         $serie = $this->repository->add($request);
+        // dd($serie);
+
+        // $email = new SeriesCreated(
+        //     $serie->nome,
+        //     $serie->id,
+        //     // $serie->seasonsQty,
+        //     // $serie->episodesPerSeason,
+        //     5,
+        //     10
+        // );
+
+        // $userList = User::all();
+
+        // foreach ($userList as $index => $user) {
+        //     $email = new SeriesCreated(
+        //         $serie->nome,
+        //         $serie->id,
+        //         // $serie->seasonsQty,
+        //         // $serie->episodesPerSeason,
+        //         5,
+        //         10
+        //     );
+        //     // $when = new DateTime();
+        //     // $when->modify($index * 2 . ' seconds');
+        //     // Mail::to($user)->later($when, $email);
+
+        //     $when = now()->addSeconds($index * 5);
+        //     Mail::to($user)->later($when, $email);
+
+        //     // Mail::to($user)->queue($email);
+        //     // Mail::to($user)->send($email);
+        //     // sleep(2);
+        // }
+
+        // Mail::to($request->user())->send($email);
+
+        SeriesCreatedEvent::dispatch(
+            $serie->nome,
+            $serie->id,
+            // $serie->seasonsQty,
+            // $serie->episodesPerSeason,
+            5,
+            10
+        );
 
         return to_route('series.index')->with('mensagem.sucesso', "Série '{$serie->nome}' adicionada com sucesso");
         // return redirect()->route('series.index');
