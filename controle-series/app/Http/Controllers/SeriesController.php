@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\SeriesCreated as SeriesCreatedEvent;
 use App\Http\Middleware\Autenticador;
 use App\Http\Requests\SeriesFormRequest;
+use App\Jobs\DeleteSeriesCover;
 // use App\Mail\SeriesCreated;
 // use App\Models\Episode;
 // use App\Models\Season;
@@ -188,6 +189,12 @@ class SeriesController extends Controller
 
         // Mail::to($request->user())->send($email);
 
+        $cover_path = $request->hasFile('cover')
+            ? $request->file('cover')->store('series_cover', 'public')
+            : null;
+
+        $request->coverPath = $cover_path;
+
         SeriesCreatedEvent::dispatch(
             $serie->nome,
             $serie->id,
@@ -196,6 +203,7 @@ class SeriesController extends Controller
             5,
             10
         );
+        dd($request->coverPath);
 
         return to_route('series.index')->with('mensagem.sucesso', "Série '{$serie->nome}' adicionada com sucesso");
         // return redirect()->route('series.index');
@@ -208,6 +216,7 @@ class SeriesController extends Controller
         // $serie = Serie::find($request->serie);
         // Serie::destroy($request->serie);
         $series->delete();
+        DeleteSeriesCover::dispatch($series->cover);
         // session()->flash('mensagem.sucesso', "Série {$series->snome} removida com sucesso");
         // $request->session()->flash('mensagem.sucesso', 'Série removida com sucesso');
         // $request->session()->put('mensagem.sucesso', 'Série removida com sucesso');
